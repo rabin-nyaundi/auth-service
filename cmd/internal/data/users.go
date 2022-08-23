@@ -73,7 +73,7 @@ func (m UserModel) InsertUser(user *User) error {
 	query := `
 	INSERT INTO auth_user (firstname, lastname, email, username, password_hash, active, role, version)
 	VALUES ($1, $2, $3, $4, $5, $6, 1, 1)
-	RETURNING id, created, version
+	RETURNING id, created_at, version
 	`
 
 	args := []interface{}{
@@ -85,7 +85,7 @@ func (m UserModel) InsertUser(user *User) error {
 
 	fmt.Println("This code is reached")
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.Created_At, &user.Version)
 
 	if err != nil {
 		switch {

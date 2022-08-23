@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"rabitech.auth.app/cmd/internal/data"
 )
@@ -84,9 +85,16 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	token, err := app.models.Tokens.New(user.ID, 1*24*time.Hour, data.ScopeActivation)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	email_data := map[string]interface{}{
-		"UserID":   user.ID,
-		"UserName": user.Username,
+		"UserID":          user.ID,
+		"UserName":        user.Username,
+		"activationToken": token.Plaintext,
 	}
 	app.background(func() {
 		err = app.mailer.Send(user.Email, "user_registration.tmpl", email_data)

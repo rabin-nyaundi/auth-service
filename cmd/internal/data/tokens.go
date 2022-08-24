@@ -129,3 +129,11 @@ func GenerateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 
 	return token, nil
 }
+
+/*
+GetUserForToken retrieves a user associated with a token.
+*/
+
+/*
+GetAllTokenForUser retrieves all token associated with a user.
+*/

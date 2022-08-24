@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -143,3 +144,47 @@ func (m UserModel) GetUsers() ([]*User, error) {
 	return users, nil
 
 }
+
+/*
+GetUserForToken retrieves a user associated with a token.
+*/
+
+func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+
+	query := `SELECT auth_user.id, auth_user.created_at, auth_user.email, auth_user.password_hash
+		FROM auth_user
+		INNER JOIN tokens
+		ON auth_user.id = tokens.user_id
+		WHERE tokens.hash = $1
+		AND tokens.scope = $2
+		AND tokens.expiry > $3`
+
+	args := []interface{}{
+		tokenHash[:], tokenScope, time.Now(),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user User
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID,
+		&user.Created_At,
+		&user.Email,
+		&user.Password.hash,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+
+	return &user, nil
+}
+
+/*
+GetAllTokenForUser retrieves all token associated with a user.
+*/

@@ -119,3 +119,26 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
+
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		fmt.Println(err)
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": "bad body in request"})
+		return
+	}
+
+	user, err := app.models.User.GetUserForToken(data.ScopeActivation, input.TokenPlaintext)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	user.Active = true
+
+	app.writeJSON(w, http.StatusAccepted, envelope{"data": user})
+}

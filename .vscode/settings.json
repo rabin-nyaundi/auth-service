@@ -1,3 +1,6 @@
 {
-  "conventionalCommits.scopes": ["Auth Service Registration"]
+  "conventionalCommits.scopes": [
+    "Auth Service Registration",
+    "User Account Activation"
+  ]
 }

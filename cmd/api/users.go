@@ -129,16 +129,42 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		fmt.Println(err)
-		app.writeJSON(w, http.StatusBadRequest, envelope{"error": "bad body in request"})
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
 		return
 	}
 
 	user, err := app.models.User.GetUserForToken(data.ScopeActivation, input.TokenPlaintext)
 	if err != nil {
-		fmt.Println(err)
+		switch {
+		case err.Error() == "sql: no rows in result set":
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with that token"})
+			return
+
+		default:
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+			fmt.Println(err, "error at get user for a token")
+		}
+		return
 	}
 
 	user.Active = true
+	user.Updated_At = time.Now()
+	user.Version = user.Version + 1
+
+	err = app.models.User.UpdateUser(user)
+
+	if err != nil {
+		fmt.Println(err, "Error at Updat user")
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
+	if err != nil {
+		fmt.Println(err, "error at delete user tokens")
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
 
 	app.writeJSON(w, http.StatusAccepted, envelope{"data": user})
 }

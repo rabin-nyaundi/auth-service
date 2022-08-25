@@ -100,6 +100,29 @@ func (m UserModel) InsertUser(user *User) error {
 	return nil
 }
 
+func (m UserModel) UpdateUser(user *User) error {
+	query := `
+		UPDATE auth_user
+		SET active = $1, version = $2, updated_at = $3
+		WHERE id = $4
+		RETURNING id`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{
+		user.Active, user.Version, user.Updated_At, user.ID,
+	}
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 func (m UserModel) GetUsers() ([]*User, error) {
 	query := `SELECT * FROM auth_user`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -171,6 +194,9 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.LastName,
 		&user.Created_At,
 		&user.Email,
 		&user.Password.hash,
@@ -180,7 +206,6 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 		fmt.Println(err)
 		return nil, err
 	}
-
 
 	return &user, nil
 }

@@ -97,7 +97,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		"activationToken": token.Plaintext,
 	}
 	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_registration.tmpl", email_data)
+		err = app.mailer.Send(user.Email, "user_registration.html", email_data)
 
 		if err != nil {
 			switch {

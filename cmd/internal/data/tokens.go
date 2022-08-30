@@ -14,7 +14,8 @@ import (
 Defne constant for the scope
 */
 const (
-	ScopeActivation = "activation"
+	ScopeActivation     = "activation"
+	ScopeAuthentication = "authentication"
 )
 
 /*
@@ -22,11 +23,11 @@ Token struct to hold the data for individual token.
 It includes plaintext and hashed plaintext, id of the associated user, time for the token to expire and scope of the token.
 */
 type Token struct {
-	Plaintext string
-	Hash      []byte
-	UserID    int
-	Expiry    time.Time
-	Scope     string
+	Plaintext string    `json:"token"`
+	Hash      []byte    `json:"-"`
+	UserID    int       `json:"-"`
+	Expiry    time.Time `json:"expiry"`
+	Scope     string    `json:"-"`
 }
 
 /*

@@ -14,6 +14,7 @@ import (
 
 var (
 	ErrorDuplicateEmail = errors.New("duplicate email")
+	// ErrorRecordNotFound = errors.New("record not found")
 )
 
 type User struct {
@@ -98,6 +99,42 @@ func (m UserModel) InsertUser(user *User) error {
 		}
 	}
 	return nil
+}
+
+func (m UserModel) GetUserByEmail(email string) (*User, error) {
+	query := `
+		SELECT id, firstname, lastname, username, email, password_hash, active
+		FROM auth_user
+		WHERE email = $1`
+	var user User
+	args := []interface{}{
+		email,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&user.Email,
+		&user.Password.hash,
+		&user.Active,
+	)
+
+	if err != nil {
+		switch {
+		case err.Error() == `sql: no rows in result set`:
+			return nil, ErrorRecordNotFound
+		default:
+			fmt.Println(err.Error())
+			return nil, err
+		}
+	}
+
+	return &user, nil
 }
 
 func (m UserModel) UpdateUser(user *User) error {
@@ -194,9 +231,6 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.LastName,
 		&user.Created_At,
 		&user.Email,
 		&user.Password.hash,

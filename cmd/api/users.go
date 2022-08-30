@@ -84,8 +84,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+	duration := 1 * 24 * time.Hour
 
-	token, err := app.models.Tokens.New(user.ID, 1*24*time.Hour, data.ScopeActivation)
+	token, err := app.models.Tokens.New(user.ID, duration, data.ScopeActivation)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -95,6 +96,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		"UserID":          user.ID,
 		"UserName":        user.Username,
 		"activationToken": token.Plaintext,
+		"expiryDuration":  duration,
 	}
 	app.background(func() {
 		err = app.mailer.Send(user.Email, "user_registration.html", email_data)

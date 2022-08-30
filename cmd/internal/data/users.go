@@ -17,6 +17,8 @@ var (
 	// ErrorRecordNotFound = errors.New("record not found")
 )
 
+var AnonymusUser = &User{}
+
 type User struct {
 	ID         int64     `json:"id"`
 	FirstName  string    `json:"firstname"`
@@ -38,6 +40,10 @@ type password struct {
 
 type UserModel struct {
 	DB *sql.DB
+}
+
+func (u *User) IsAnonymus() bool {
+	return u == AnonymusUser
 }
 
 func (p *password) Set(plaintextPassword string) error {
@@ -212,7 +218,7 @@ GetUserForToken retrieves a user associated with a token.
 func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
-	query := `SELECT auth_user.id, auth_user.created_at, auth_user.email, auth_user.password_hash
+	query := `SELECT auth_user.id, auth_user.created_at, auth_user.email, auth_user.password_hash, auth_user.active
 		FROM auth_user
 		INNER JOIN tokens
 		ON auth_user.id = tokens.user_id
@@ -234,6 +240,7 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 		&user.Created_At,
 		&user.Email,
 		&user.Password.hash,
+		&user.Active,
 	)
 
 	if err != nil {

@@ -2,6 +2,7 @@
   "conventionalCommits.scopes": [
     "Auth Service Registration",
     "User Account Activation",
-    "Auth Token"
+    "Auth Token",
+    "Metrics"
   ]
 }

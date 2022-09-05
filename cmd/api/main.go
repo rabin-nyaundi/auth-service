@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,12 +47,15 @@ type config struct {
 		password string
 		sender   string
 	}
+	cors struct {
+		trustedUrlOrigins []*url.URL
+	}
 }
 type application struct {
 	config config
 	models data.Models
 	mailer mailer.Mailer
-	wg sync.WaitGroup
+	wg     sync.WaitGroup
 }
 
 func main() {
@@ -72,6 +79,19 @@ func main() {
 	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("SMTP_USERNAME"), "SMTP Username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("SMTP_PASSWORD"), "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", os.Getenv("SMTP_SENDER"), "SMTP sender")
+
+	// cors flags
+	flag.Func("cors-trusted-origins", "list allowd origin urls", func(s string) error {
+		for _, u := range strings.Fields(s) {
+			parsedUrl, err := url.Parse(u)
+			if err != nil {
+				return err
+			}
+			cfg.cors.trustedUrlOrigins = append(cfg.cors.trustedUrlOrigins, parsedUrl)
+		}
+		return nil
+	})
+
 	flag.Parse()
 
 	db, err := openDB(cfg)
@@ -84,6 +104,20 @@ func main() {
 	defer db.Close()
 
 	fmt.Println("Database connection successful")
+
+	expvar.NewString("version").Set(version)
+
+	expvar.Publish("goroutines", expvar.Func(func() interface{} {
+		return runtime.NumGoroutine()
+	}))
+
+	expvar.Publish("database", expvar.Func(func() interface{} {
+		return db.Stats()
+	}))
+
+	expvar.Publish("timestamp", expvar.Func(func() interface{} {
+		return time.Now().Unix()
+	}))
 
 	app := &application{
 		config: cfg,

@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
-	"time"
 
+	"github.com/felixge/httpsnoop"
 	"rabitech.auth.app/cmd/internal/data"
 )
 
@@ -133,17 +134,21 @@ func (app *application) metrics(next http.Handler) http.Handler {
 	totalRequestsReceived := expvar.NewInt("total_requests_received")
 	totalResponsesSent := expvar.NewInt("total_responses_sent")
 	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_μs")
+	totalResponseSentByStatus := expvar.NewMap("total_responses_sent_by_status")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		// start := time.Now()
 
 		totalRequestsReceived.Add(1)
-		next.ServeHTTP(w, r)
+
+		metrics := httpsnoop.CaptureMetrics(next, w, r)
+		// next.ServeHTTP(w, r)
 
 		totalResponsesSent.Add(1)
 
-		duration := time.Since(start).Microseconds()
-		totalProcessingTimeMicroseconds.Add(int64(duration))
+		// duration := time.Since(start).Microseconds()
+		totalProcessingTimeMicroseconds.Add(metrics.Duration.Microseconds())
 
+		totalResponseSentByStatus.Add(strconv.Itoa(metrics.Code), 1)
 	})
 }

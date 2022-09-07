@@ -20,13 +20,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const version = "1.0.0"
-
 // colors used in logging text in terminal
-const colorCyan = "\033[36m"
-
-const colorGreen = "\033[32m"
-const colorRed = "\033[31m"
+// const colorCyan = "\033[36m"
+// const colorGreen = "\033[32m"
+// const colorRed = "\033[31m"
 
 type envelope map[string]interface{}
 
@@ -58,6 +55,11 @@ type application struct {
 	wg     sync.WaitGroup
 }
 
+var (
+	buildTime string
+	version   string
+)
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -69,7 +71,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4002, "API Server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment(development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgresql://db_admin:admin_21@localhost/user_db", "database connection string")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "database connection string")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL maximum open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL maximum idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "10m", "PostgreSQL maximum idle time")
@@ -91,8 +93,17 @@ func main() {
 		}
 		return nil
 	})
+	// Version flag
+	displayVersion := flag.Bool("version", false, "Display version and exit")
 
 	flag.Parse()
+
+	//  Print the build time and version of the application
+	if *displayVersion {
+		fmt.Printf("Version: \t%s\n", version)
+		fmt.Printf("Build time: \t%s\n", buildTime)
+		os.Exit(0)
+	}
 
 	db, err := openDB(cfg)
 
@@ -128,7 +139,6 @@ func main() {
 	err = app.serve()
 
 	if err != nil {
-		fmt.Println("Error is here")
 		fmt.Println(err)
 		return
 	}

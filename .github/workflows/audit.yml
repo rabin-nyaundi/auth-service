@@ -2,7 +2,9 @@ name: Audit
 
 on:
   push:
-    branches: [*]
+    branches:
+      - develop
+      - ft-ci-cd
   pull_request:
     branches: [main]
 

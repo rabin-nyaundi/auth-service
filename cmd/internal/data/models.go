@@ -15,7 +15,7 @@ type Models struct {
 	Tokens TokenModel
 }
 
-//  NewModel function initailize a new model
+//  NewModel return models.
 func NewModel(db *sql.DB) Models {
 	return Models{
 		User:   UserModel{DB: db},

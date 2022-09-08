@@ -103,14 +103,14 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 
 		if origin != "" {
 
-			for i := range app.config.cors.trustedUrlOrigins {
-				originUrl, err := url.Parse(origin)
+			for i := range app.config.cors.trustedURLOrigins {
+				originURL, err := url.Parse(origin)
 
 				if err != nil {
 					return
 				}
 
-				if originUrl == app.config.cors.trustedUrlOrigins[i] {
+				if originURL == app.config.cors.trustedURLOrigins[i] {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 
 					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {

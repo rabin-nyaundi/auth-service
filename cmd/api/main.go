@@ -45,7 +45,7 @@ type config struct {
 		sender   string
 	}
 	cors struct {
-		trustedUrlOrigins []*url.URL
+		trustedURLOrigins []*url.URL
 	}
 }
 type application struct {
@@ -85,11 +85,11 @@ func main() {
 	// cors flags
 	flag.Func("cors-trusted-origins", "list allowd origin urls", func(s string) error {
 		for _, u := range strings.Fields(s) {
-			parsedUrl, err := url.Parse(u)
+			parsedURL, err := url.Parse(u)
 			if err != nil {
 				return err
 			}
-			cfg.cors.trustedUrlOrigins = append(cfg.cors.trustedUrlOrigins, parsedUrl)
+			cfg.cors.trustedURLOrigins = append(cfg.cors.trustedURLOrigins, parsedURL)
 		}
 		return nil
 	})

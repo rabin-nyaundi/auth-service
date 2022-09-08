@@ -31,7 +31,7 @@ type Token struct {
 }
 
 /*
-Token model
+TokenModel struct
 */
 type TokenModel struct {
 	DB *sql.DB
@@ -58,7 +58,7 @@ func (m TokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, 
 }
 
 /*
-Make a query to insert the token into database table
+Insert function makes a query to insert the token into database table
 */
 func (m TokenModel) Insert(token *Token) error {
 	query := `
@@ -84,7 +84,7 @@ func (m TokenModel) Insert(token *Token) error {
 }
 
 /*
-DelteAllForUser() deletes all tokens for user and the scope from tokens table
+DeleteAllForUser deletes all tokens for user and the scope from tokens table
 */
 func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 	query := `

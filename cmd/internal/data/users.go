@@ -12,25 +12,28 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrorDuplicateEmail returned when duplicate email is provided
 var (
 	ErrorDuplicateEmail = errors.New("duplicate email")
 	// ErrorRecordNotFound = errors.New("record not found")
 )
 
+// AnonymusUser is a non user not existing in our system
 var AnonymusUser = &User{}
 
+// User struct with user properties
 type User struct {
-	ID         int64     `json:"id"`
-	FirstName  string    `json:"firstname"`
-	LastName   string    `json:"lastname"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email"`
-	Password   password  `json:"-"`
-	Active     bool      `json:"active"`
-	Role       int       `json:"role"`
-	Created_At time.Time `json:"created_at"`
-	Updated_At time.Time `json:"updated_at"`
-	Version    int       `json:"-"`
+	ID        int64     `json:"id"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Password  password  `json:"-"`
+	Active    bool      `json:"active"`
+	Role      int       `json:"role"`
+	CreatedAt time.Time `json:"CreatedAt"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
+	Version   int       `json:"-"`
 }
 
 type password struct {
@@ -38,6 +41,7 @@ type password struct {
 	hash      []byte
 }
 
+// UserModel struct fot user model
 type UserModel struct {
 	DB *sql.DB
 }
@@ -81,7 +85,7 @@ func (m UserModel) InsertUser(user *User) error {
 	query := `
 	INSERT INTO auth_user (firstname, lastname, email, username, password_hash, active, role, version)
 	VALUES ($1, $2, $3, $4, $5, $6, 1, 1)
-	RETURNING id, created_at, version
+	RETURNING id, CreatedAt, version
 	`
 
 	args := []interface{}{
@@ -93,7 +97,7 @@ func (m UserModel) InsertUser(user *User) error {
 
 	fmt.Println("This code is reached")
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.Created_At, &user.Version)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
 
 	if err != nil {
 		switch {
@@ -146,7 +150,7 @@ func (m UserModel) GetUserByEmail(email string) (*User, error) {
 func (m UserModel) UpdateUser(user *User) error {
 	query := `
 		UPDATE auth_user
-		SET active = $1, version = $2, updated_at = $3
+		SET active = $1, version = $2, UpdatedAt = $3
 		WHERE id = $4
 		RETURNING id`
 
@@ -154,7 +158,7 @@ func (m UserModel) UpdateUser(user *User) error {
 	defer cancel()
 
 	args := []interface{}{
-		user.Active, user.Version, user.Updated_At, user.ID,
+		user.Active, user.Version, user.UpdatedAt, user.ID,
 	}
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID)
@@ -193,8 +197,8 @@ func (m UserModel) GetUsers() ([]*User, error) {
 			&user.Username,
 			&user.Active,
 			&user.Role,
-			&user.Created_At,
-			&user.Updated_At,
+			&user.CreatedAt,
+			&user.UpdatedAt,
 			&user.Version,
 		)
 		if err != nil {
@@ -218,7 +222,7 @@ GetUserForToken retrieves a user associated with a token.
 func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
-	query := `SELECT auth_user.id, auth_user.created_at, auth_user.email, auth_user.password_hash, auth_user.active
+	query := `SELECT auth_user.id, auth_user.CreatedAt, auth_user.email, auth_user.password_hash, auth_user.active
 		FROM auth_user
 		INNER JOIN tokens
 		ON auth_user.id = tokens.user_id
@@ -237,7 +241,7 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.ID,
-		&user.Created_At,
+		&user.CreatedAt,
 		&user.Email,
 		&user.Password.hash,
 		&user.Active,

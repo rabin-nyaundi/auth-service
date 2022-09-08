@@ -103,10 +103,8 @@ func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 	return err
 }
 
-/*
- GenerateToken generates a nw token.
- Takes userid argument, ttl duration for the token to expire and scope of the token.
-*/
+
+//  GenerateToken generates a new token. Takes userid argument, ttl duration for the token to expire and scope of the token.
 func GenerateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 
 	token := &Token{

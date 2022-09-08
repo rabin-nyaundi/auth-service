@@ -92,14 +92,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	email_data := map[string]interface{}{
+	emailData := map[string]interface{}{
 		"UserID":          user.ID,
 		"UserName":        user.Username,
 		"activationToken": token.Plaintext,
 		"expiryDuration":  duration,
 	}
 	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_registration.html", email_data)
+		err = app.mailer.Send(user.Email, "user_registration.html", emailData)
 
 		if err != nil {
 			switch {
@@ -150,7 +150,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	user.Active = true
-	user.Updated_At = time.Now()
+	user.UpdatedAt = time.Now()
 	user.Version = user.Version + 1
 
 	err = app.models.User.UpdateUser(user)

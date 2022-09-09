@@ -1,0 +1,52 @@
+version: '3.70'
+services:
+  server:
+    container_name: auth-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4002"
+    networks:
+      - mynetwork
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres_db
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DBNAME}
+    ports:
+      - "5433:5432"
+    networks:
+      - mynetwork
+
+  migrate:
+    container_name: migrate
+    image: migrate/migrate
+    depends_on:
+      - postgres
+    volumes:
+      - ./migrations:/migrations
+
+    networks:
+      - mynetwork
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "${DATABASE_DSN}",
+        "up",
+        "2"
+          # "force",
+          # "1"
+      ]
+
+networks:
+  mynetwork:

@@ -19,7 +19,7 @@ run/api:
 ## db/psql: Connect to the database using psql
 .PHONY: db/sql
 db/psql: 
-	psql postgresql://db_admin:admin_21@localhost/user_db
+	psql ${DATABASE_DSN}
 
 ## db/migrations/new name=$1: create a new databse migration
 .PHONY: db/migrations/new
@@ -34,7 +34,7 @@ db/migrations/up: ## confirm
 
 ## db/migrations/up: apply all up migrations
 .PHONY: db/migrations/down
-db/migrations/down: confirm
+db/migrations/down: 
 	@echo 'Running down migrations'
 	migrate -path ./migrations -database ${DATABASE_DSN} down
 
@@ -56,8 +56,9 @@ vendor:
 	@go mod tidy
 	@go mod verify
 	@echo 'Vendoring dependencies'
-	go mod vendor
-
+	@go mod vendor
+	@echo 'Liniting...'
+	
 
 
 current_time = $(shell date --iso-8601=seconds)

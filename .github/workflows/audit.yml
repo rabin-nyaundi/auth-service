@@ -14,10 +14,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
-
-      # - name: download dependencies
-      #   run:
-
+      
       - name: Set up Go
         uses: actions/setup-go@v2
         with:

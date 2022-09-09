@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS auth_user(
     id BIGSERIAL PRIMARY KEY,
     firstname TEXT NOT NULL,
     lastname TEXT NOT NULL,
-    email citext UNIQUE NOT NULL,
+    email VARCHAR UNIQUE NOT NULL,
     password_hash bytea NOT NULL,
     username TEXT NOT NULL,  
     active BOOLEAN NOT NULL,

@@ -80,10 +80,25 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 	})
 }
 
+func (app *application) requireAdminUser(next http.HandlerFunc) http.HandlerFunc {
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := app.ContextGetUser(r)
+
+		if user.Role != 1 {
+			fmt.Println("user is not admin")
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "you can't access this resource, !admin"})
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+	return app.requireActivatedUser(fn)
+}
+
 func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.ContextGetUser(r)
-		fmt.Println(user, "user", "usererre")
+		fmt.Println(user, "user", "user")
 		if !user.Active {
 			app.inactiveAccountResponse(w, r)
 			return
@@ -103,14 +118,14 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 
 		if origin != "" {
 
-			for i := range app.config.cors.trustedUrlOrigins {
-				originUrl, err := url.Parse(origin)
+			for i := range app.config.cors.trustedURLOrigins {
+				originURL, err := url.Parse(origin)
 
 				if err != nil {
 					return
 				}
 
-				if originUrl == app.config.cors.trustedUrlOrigins[i] {
+				if originURL == app.config.cors.trustedURLOrigins[i] {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 
 					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {

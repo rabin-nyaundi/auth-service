@@ -38,6 +38,36 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		fmt.Println(err)
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	user, err := app.models.User.GetUserForToken(data.ScopeAuthentication, input.TokenPlaintext)
+
+	if err != nil {
+		switch {
+		case err.Error() == `sql: no rows in result set`:
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with such token"})
+			return
+		default:
+			fmt.Println(err)
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		}
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"data": user})
+}
+
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		FirstName string `json:"firstname"`
@@ -92,14 +122,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	email_data := map[string]interface{}{
+	emailData := map[string]interface{}{
 		"UserID":          user.ID,
 		"UserName":        user.Username,
 		"activationToken": token.Plaintext,
 		"expiryDuration":  duration,
 	}
 	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_registration.html", email_data)
+		err = app.mailer.Send(user.Email, "user_registration.html", emailData)
 
 		if err != nil {
 			switch {
@@ -150,7 +180,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	user.Active = true
-	user.Updated_At = time.Now()
+	user.UpdatedAt = time.Now()
 	user.Version = user.Version + 1
 
 	err = app.models.User.UpdateUser(user)

@@ -45,7 +45,7 @@ type config struct {
 		sender   string
 	}
 	cors struct {
-		trustedUrlOrigins []*url.URL
+		trustedURLOrigins []*url.URL
 	}
 }
 type application struct {
@@ -71,7 +71,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4002, "API Server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment(development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "database connection string")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("DATABASE_DSN"), "database connection string")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL maximum open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL maximum idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "10m", "PostgreSQL maximum idle time")
@@ -85,11 +85,11 @@ func main() {
 	// cors flags
 	flag.Func("cors-trusted-origins", "list allowd origin urls", func(s string) error {
 		for _, u := range strings.Fields(s) {
-			parsedUrl, err := url.Parse(u)
+			parsedURL, err := url.Parse(u)
 			if err != nil {
 				return err
 			}
-			cfg.cors.trustedUrlOrigins = append(cfg.cors.trustedUrlOrigins, parsedUrl)
+			cfg.cors.trustedURLOrigins = append(cfg.cors.trustedURLOrigins, parsedURL)
 		}
 		return nil
 	})

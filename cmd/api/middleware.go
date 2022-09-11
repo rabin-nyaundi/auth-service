@@ -80,10 +80,25 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 	})
 }
 
+func (app *application) requireAdminUser(next http.HandlerFunc) http.HandlerFunc {
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := app.ContextGetUser(r)
+
+		if user.Role != 1 {
+			fmt.Println("user is not admin")
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "you can't access this resource, !admin"})
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+	return app.requireActivatedUser(fn)
+}
+
 func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.ContextGetUser(r)
-		fmt.Println(user, "user", "usererre")
+		fmt.Println(user, "user", "user")
 		if !user.Active {
 			app.inactiveAccountResponse(w, r)
 			return

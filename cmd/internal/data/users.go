@@ -218,11 +218,10 @@ func (m UserModel) GetUsers() ([]*User, error) {
 /*
 GetUserForToken retrieves a user associated with a token.
 */
-
 func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
-	query := `SELECT auth_user.id, auth_user.CreatedAt, auth_user.email, auth_user.password_hash, auth_user.active
+	query := `SELECT auth_user.id, auth_user.firstname, auth_user.lastname, auth_user.username,auth_user.CreatedAt, auth_user.email, auth_user.password_hash, auth_user.active, auth_user.role
 		FROM auth_user
 		INNER JOIN tokens
 		ON auth_user.id = tokens.user_id
@@ -241,10 +240,14 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
 		&user.CreatedAt,
 		&user.Email,
 		&user.Password.hash,
 		&user.Active,
+		&user.Role,
 	)
 
 	if err != nil {

@@ -38,6 +38,36 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		fmt.Println(err)
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	user, err := app.models.User.GetUserForToken(data.ScopeAuthentication, input.TokenPlaintext)
+
+	if err != nil {
+		switch {
+		case err.Error() == `sql: no rows in result set`:
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with such token"})
+			return
+		default:
+			fmt.Println(err)
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		}
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"data": user})
+}
+
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		FirstName string `json:"firstname"`

@@ -43,7 +43,7 @@ services:
         "-database",
         "${DATABASE_DSN}",
         "up",
-        "2"
+        # "2"
           # "force",
           # "1"
       ]

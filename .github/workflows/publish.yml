@@ -1,4 +1,4 @@
-name: Audit
+name: Publish Image to dockerhub
 
 on:
   push:
@@ -12,15 +12,17 @@ on:
 
 jobs:
   audit:
-    name: Run go on ubuntu
+    name: Publish image to docker
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      # Login to docker hub
+      - name: Login to dockerhub
+        uses: docker/login-action@v1
         with:
-          go-version: 1.18
+          username: ${{DOCKER_USER}}
+          password: ${{DOCKER_PASSWORD}}
 
       # Verify dependencies
       - name: verify dependencies

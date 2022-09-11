@@ -14,6 +14,9 @@ jobs:
     name: Build the application
     runs-on: ubuntu-22.04
     steps:
+
+      - name: Check out the repo
+        uses: actions/checkout@v3
     
       #  set up doker 
       - name: Login to Dockerhub

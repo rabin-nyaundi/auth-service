@@ -25,4 +25,7 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
 
       - name: Docker build image
-        run: docker build . --file Dockerfile --tag rabmdocker/auth-service
+        run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/auth-service
+
+      - name: Push Image 
+        run: docker push ${{secrets.DOCKER_USER}}/auth

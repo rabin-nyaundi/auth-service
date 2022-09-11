@@ -28,4 +28,4 @@ jobs:
         run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/auth-service
 
       - name: Push Image 
-        run: docker push ${{secrets.DOCKER_USER}}/auth
+        run: docker push ${{secrets.DOCKER_USER}}/auth-service

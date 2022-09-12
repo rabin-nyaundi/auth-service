@@ -3,8 +3,10 @@ name: Publish Image to dockerhub
 on:
   push:
     branches:
-      - develop
-      - ft-ci-cd
+      tags:
+        - "*"
+      # - develop
+      # - ft-ci-cd
   pull_request:
     branches:
       - develop
@@ -25,7 +27,7 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
 
       - name: Docker build image
-        run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/auth-service
+        run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
 
-      - name: Push Image 
+      - name: Push Image
         run: docker push ${{secrets.DOCKER_USER}}/auth-service

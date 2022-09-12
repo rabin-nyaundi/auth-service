@@ -25,7 +25,7 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
 
       - name: Docker build image
-        run: docker build . --file Dockerfile -t ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
+        run: docker build . --file Dockerfile -t ${{secrets.DOCKER_USER}}/auth-service:latest/${{ github.ref_name }}
 
       - name: Push Image
-        run: docker push ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
+        run: docker push ${{secrets.DOCKER_USER}}/auth-service:latest/${{ github.ref_name }}

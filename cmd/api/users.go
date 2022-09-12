@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"rabitech.auth.app/cmd/internal/data"
 )
@@ -35,6 +36,36 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		fmt.Println(err)
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	user, err := app.models.User.GetUserForToken(data.ScopeAuthentication, input.TokenPlaintext)
+
+	if err != nil {
+		switch {
+		case err.Error() == `sql: no rows in result set`:
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with such token"})
+			return
+		default:
+			fmt.Println(err)
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		}
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"data": user})
 }
 
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,13 +114,22 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+	duration := 1 * 24 * time.Hour
 
-	email_data := map[string]interface{}{
-		"UserID":   user.ID,
-		"UserName": user.Username,
+	token, err := app.models.Tokens.New(user.ID, duration, data.ScopeActivation)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	emailData := map[string]interface{}{
+		"UserID":          user.ID,
+		"UserName":        user.Username,
+		"activationToken": token.Plaintext,
+		"expiryDuration":  duration,
 	}
 	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_registration.tmpl", email_data)
+		err = app.mailer.Send(user.Email, "user_registration.html", emailData)
 
 		if err != nil {
 			switch {
@@ -110,4 +150,53 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		fmt.Println(err)
 		return
 	}
+}
+
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		fmt.Println(err)
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	user, err := app.models.User.GetUserForToken(data.ScopeActivation, input.TokenPlaintext)
+	if err != nil {
+		switch {
+		case err.Error() == "sql: no rows in result set":
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with that token"})
+			return
+
+		default:
+			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+			fmt.Println(err, "error at get user for a token")
+		}
+		return
+	}
+
+	user.Active = true
+	user.UpdatedAt = time.Now()
+	user.Version = user.Version + 1
+
+	err = app.models.User.UpdateUser(user)
+
+	if err != nil {
+		fmt.Println(err, "Error at Updat user")
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
+	if err != nil {
+		fmt.Println(err, "error at delete user tokens")
+		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		return
+	}
+
+	app.writeJSON(w, http.StatusAccepted, envelope{"data": user})
 }

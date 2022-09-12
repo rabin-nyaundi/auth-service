@@ -2,11 +2,11 @@ name: Publish Image to dockerhub
 
 on:
   push:
+    tags:
+      - "*"
     branches:
-      tags:
-        - "*"
-      # - develop
-      # - ft-ci-cd
+      - develop
+      - ft-ci-cd
   pull_request:
     branches:
       - develop

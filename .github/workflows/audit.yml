@@ -5,10 +5,10 @@ on:
     branches:
       - develop
       - ft-ci-cd
+      
   pull_request:
     branches: 
       - develop
-      - main
 
 jobs:
   audit:

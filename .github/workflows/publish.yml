@@ -12,7 +12,7 @@ on:
 
 jobs:
   audit:
-    name: Publish image to docker
+    name: Publish image to docker on push
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +25,7 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
 
       - name: Docker build image
-        run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
+        run: docker build . --file Dockerfile -t ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
 
       - name: Push Image
         run: docker push ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}

@@ -6,7 +6,7 @@ on:
 
 jobs:
   release:
-    name: Publish image to docker
+    name: Publish image to docker on release
     runs-on: ubuntu-latest
     steps:
       - uses: action/checkout@v2

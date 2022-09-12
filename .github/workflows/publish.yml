@@ -11,8 +11,9 @@ on:
       - main
 
 jobs:
-  audit:
+  build:
     name: Publish image to docker on push
+
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2

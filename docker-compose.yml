@@ -2,9 +2,10 @@ version: '3.70'
 services:
   server:
     container_name: auth-service
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: rabmdocker/auth-service:v1.0.0
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     ports:
       - "4002:4002"
     networks:
@@ -42,11 +43,8 @@ services:
         "/migrations",
         "-database",
         "${DATABASE_DSN}",
-        "up",
-        # "2"
-          # "force",
-          # "1"
-      ]
+        "up"
+      ]       
 
 networks:
   mynetwork:

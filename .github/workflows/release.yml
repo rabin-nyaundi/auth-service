@@ -1,0 +1,25 @@
+name: Publish Image on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Publish image to docker on release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Login to docker hub
+      - name: Login to dockerhub
+        uses: docker/login-action@v1
+        with:
+          username: ${{secrets.DOCKER_USER}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+
+      - name: Docker build image
+        run: docker build . --file Dockerfile -t ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}
+
+      - name: Push Image
+        run: docker push ${{secrets.DOCKER_USER}}/auth-service:${{ github.ref_name }}

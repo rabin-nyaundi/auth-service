@@ -26,6 +26,3 @@ RUN go build -o=./auth /app/cmd/api
 EXPOSE 4002 4002
 
 CMD [ "./auth" ]
-
-
-

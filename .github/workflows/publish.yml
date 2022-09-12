@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  audit:
+  tagged-release:
     name: Publish image to docker
     runs-on: ubuntu-22.04
     steps:

@@ -1,13 +1,12 @@
 
 <h1 align="center">
   <br>
-  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="https://raw.githubusercontent.com/amitmerchant1990/electron-markdownify/master/app/img/markdownify.png" alt="Markdownify" width="200"></a>
   <br>
   Auth Service
   <br>
 </h1>
 
-<h4 align="center">Complete authentication service built by <a href="https://golang.org" target="_blank">Go</a>, <a href="http://electron.atom.io" target="_blank">Postgres</a>, database, stateful token authentication.</h4>
+<h4 align="center">Complete authentication service built by <a href="https://golang.org" target="_blank">Go</a>, <a href="http://postgresql.org" target="_blank">Postgres</a>, database, stateful token authentication.</h4>
 
 <br />
 
@@ -44,7 +43,7 @@ To clone and run this application, you'll need [Go](https://golang.org) , [Postg
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/amitmerchant1990/electron-markdownify
+$ git clone git@github.com:rabin-nyaundi/auth-service.git
 
 # Go into the repository
 $ cd auth-service
@@ -81,7 +80,7 @@ Visit localhost:4002
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/amitmerchant1990/electron-markdownify
+$ git clone git@github.com:rabin-nyaundi/auth-service.git
 
 # Go into the repository
 $ cd auth-service

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/felixge/httpsnoop"
-	"rabitech.auth.app/cmd/internal/data"
+	"rabitech.auth.app/internal/data"
 )
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {

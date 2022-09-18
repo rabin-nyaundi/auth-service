@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"rabitech.auth.app/cmd/internal/data"
-	"rabitech.auth.app/cmd/internal/data/mailer"
+	"rabitech.auth.app/internal/data"
+	"rabitech.auth.app/internal/data/mailer"
 
 	_ "github.com/lib/pq"
 )
@@ -26,6 +26,13 @@ import (
 // const colorRed = "\033[31m"
 
 type envelope map[string]interface{}
+
+type JSONResponse struct {
+	Error   bool        `json:"error,omitempty"`
+	Success bool        `json:"success,omitempty"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
 
 type config struct {
 	port int

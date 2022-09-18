@@ -2,10 +2,11 @@ version: '3.70'
 services:
   server:
     container_name: auth-service
-    image: rabmdocker/auth-service:v1.0.0
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    # image: rabmdocker/auth-service:v1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - "4002:4002"
     networks:
@@ -30,8 +31,7 @@ services:
   migrate:
     container_name: migrate
     image: migrate/migrate
-    depends_on:
-      - postgres
+    restart: "on-failure"
     volumes:
       - ./migrations:/migrations
 
@@ -44,7 +44,9 @@ services:
         "-database",
         "${DATABASE_DSN}",
         "up"
-      ]       
+      ]
+    depends_on:
+      - postgres
 
 networks:
   mynetwork:

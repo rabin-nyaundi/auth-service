@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"rabitech.auth.app/cmd/internal/data"
+	"rabitech.auth.app/internal/data"
 )
 
 func (app *application) status(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +31,12 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"users": users})
+	err = app.writeJSON(w, http.StatusOK,
+		JSONResponse{
+			Success: true,
+			Message: "users fetch success",
+			Data:    users,
+		})
 
 	if err != nil {
 		fmt.Println(err)
@@ -46,8 +51,7 @@ func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request)
 	err := app.readJSON(w, r, &input)
 
 	if err != nil {
-		fmt.Println(err)
-		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -56,16 +60,19 @@ func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		switch {
 		case err.Error() == `sql: no rows in result set`:
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with such token"})
+			app.JSONError(w, errors.New("no user found with such token"), http.StatusBadRequest)
 			return
 		default:
-			fmt.Println(err)
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+			app.JSONError(w, err, http.StatusBadRequest)
 		}
 		return
 	}
 
-	app.writeJSON(w, http.StatusOK, envelope{"data": user})
+	app.writeJSON(w, http.StatusOK, JSONResponse{
+		Success: true,
+		Message: "users fetch success",
+		Data:    user,
+	})
 }
 
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +87,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err := app.readJSON(w, r, &input)
 
 	if err != nil {
-		fmt.Println(err)
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -95,7 +102,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err = user.Password.Set(input.Password)
 
 	if err != nil {
-		fmt.Println(err)
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -104,13 +111,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrorDuplicateEmail):
-			fmt.Println("duplicate email found")
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "user with email already exist."})
-
+			app.JSONError(w, errors.New("user with email already exist"), http.StatusBadRequest)
 		default:
-			fmt.Println(err)
-			fmt.Println("Error inserting user to database")
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "Error inserting user to database"})
+			app.JSONError(w, errors.New("rror inserting user to database"), http.StatusBadRequest)
 		}
 		return
 	}
@@ -118,7 +121,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	token, err := app.models.Tokens.New(user.ID, duration, data.ScopeActivation)
 	if err != nil {
-		fmt.Println(err)
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -134,20 +137,22 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			switch {
 			case err.Error() == "template: pattern matches no files: `templates/user_registration.tmpl`":
-				app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+				app.JSONError(w, errors.New("no template found"), http.StatusBadRequest)
 				return
 			default:
-				fmt.Println(err)
-				app.writeJSON(w, http.StatusBadRequest, envelope{"error": "an error occured when sending activation email"})
+				app.JSONError(w, errors.New("an error occured when sending activation email"), http.StatusBadRequest)
 			}
 			return
 		}
 	})
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": "user created successfuly"})
-
+	err = app.writeJSON(w, http.StatusCreated,
+		JSONResponse{
+			Success: true,
+			Message: "user successfully created",
+		})
 	if err != nil {
-		fmt.Println(err)
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 }
@@ -160,8 +165,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	err := app.readJSON(w, r, &input)
 
 	if err != nil {
-		fmt.Println(err)
-		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -169,12 +173,11 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case err.Error() == "sql: no rows in result set":
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": "no user found with that token"})
+			app.JSONError(w, errors.New("no user found with that token"), http.StatusBadRequest)
 			return
 
 		default:
-			app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
-			fmt.Println(err, "error at get user for a token")
+			app.JSONError(w, err, http.StatusBadRequest)
 		}
 		return
 	}
@@ -186,17 +189,20 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	err = app.models.User.UpdateUser(user)
 
 	if err != nil {
-		fmt.Println(err, "Error at Updat user")
-		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
 	if err != nil {
-		fmt.Println(err, "error at delete user tokens")
-		app.writeJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
+		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	app.writeJSON(w, http.StatusAccepted, envelope{"data": user})
+	app.writeJSON(w, http.StatusAccepted,
+		JSONResponse{
+			Success: true,
+			Message: "user activation success",
+			Data:    user,
+		})
 }

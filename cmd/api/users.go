@@ -39,6 +39,7 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 		})
 
 	if err != nil {
+		fmt.Println("handler err")
 		fmt.Println(err)
 	}
 }
@@ -59,7 +60,7 @@ func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		switch {
-		case err.Error() == `sql: no rows in result set`:
+		case errors.Is(err, data.ErrorRecordNotFound):
 			app.JSONError(w, errors.New("no user found with such token"), http.StatusBadRequest)
 			return
 		default:

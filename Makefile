@@ -14,7 +14,7 @@ help:
 ## run/api: runs the application
 .PHONY: run/api
 run/api:
-	go run ./cmd/api -db-dsn=postgresql://db_admin:admin_21@localhost/user_db
+	@go run ./cmd/api -db-dsn=postgresql://db_admin:admin_21@localhost/user_db
 
 ## db/psql: Connect to the database using psql
 .PHONY: db/sql

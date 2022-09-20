@@ -22,6 +22,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				w.Header().Set("Connection", "close")
 
 				fmt.Print(err)
+				app.logger.PrintFatal(errors.New("error: "), nil)
 			}
 		}()
 

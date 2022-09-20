@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"rabitech.auth.app/internal/data"
 	"rabitech.auth.app/internal/data/mailer"
+	"rabitech.auth.app/internal/jsonlog"
 
 	_ "github.com/lib/pq"
 )
@@ -60,6 +61,7 @@ type application struct {
 	models data.Models
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
+	logger *jsonlog.Logger
 }
 
 var (
@@ -105,6 +107,8 @@ func main() {
 
 	flag.Parse()
 
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+
 	//  Print the build time and version of the application
 	if *displayVersion {
 		fmt.Printf("Version: \t%s\n", version)
@@ -115,13 +119,13 @@ func main() {
 	db, err := openDB(cfg)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.PrintFatal(err, nil)
 		return
 	}
 
 	defer db.Close()
 
-	fmt.Println("Database connection successful")
+	logger.PrintInfo("Database connection successful", nil)
 
 	expvar.NewString("version").Set(version)
 
@@ -139,14 +143,20 @@ func main() {
 
 	app := &application{
 		config: cfg,
+		logger: logger,
 		models: data.NewModel(db),
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
+	logger.PrintInfo("stating server", map[string]string{
+		"addr": fmt.Sprintf(":%d", cfg.port),
+		"env":  cfg.env,
+	})
+
 	err = app.serve()
 
 	if err != nil {
-		fmt.Println(err)
+		logger.PrintFatal(err, nil)
 		return
 	}
 

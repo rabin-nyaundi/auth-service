@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"rabitech.auth.app/cmd/internal/data"
+	"rabitech.auth.app/internal/data"
 )
 
 type contextKey string

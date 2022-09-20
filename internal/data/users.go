@@ -208,6 +208,7 @@ func (m UserModel) GetUsers() ([]*User, error) {
 		users = append(users, &user)
 	}
 	if err = rows.Err(); err != nil {
+		fmt.Println("Error here")
 		return nil, err
 	}
 
@@ -251,7 +252,10 @@ func (m UserModel) GetUserForToken(tokenScope, tokenPlaintext string) (*User, er
 	)
 
 	if err != nil {
-		fmt.Println(err)
+		switch {
+		case err.Error() == `sql: no rows in result set`:
+			return nil, ErrorRecordNotFound
+		}
 		return nil, err
 	}
 

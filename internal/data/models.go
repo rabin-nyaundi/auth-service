@@ -9,6 +9,7 @@ import (
 var (
 	ErrorRecordNotFound = errors.New("record not found")
 )
+
 // Models struct
 type Models struct {
 	User   UserModel

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data any) error {
 	jsonObject, err := json.MarshalIndent(data, "", "\t")
 
 	if err != nil {
@@ -90,4 +90,19 @@ func (app *application) background(fn func()) {
 		}()
 		fn()
 	}()
+}
+
+func (app *application) JSONError(w http.ResponseWriter, err error, status ...int) error {
+	statusCode := http.StatusBadRequest
+
+	if len(status) > 0 {
+		statusCode = status[0]
+	}
+
+	return app.writeJSON(w, statusCode,
+		JSONResponse{
+			Error:   true,
+			Message: err.Error(),
+		})
+
 }

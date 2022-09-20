@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"rabitech.auth.app/cmd/internal/data"
+	"rabitech.auth.app/internal/data"
 )
 
 func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, r *http.Request) {

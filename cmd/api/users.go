@@ -88,6 +88,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err := app.readJSON(w, r, &input)
 
 	if err != nil {
+		app.logError(r, err)
 		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
@@ -103,6 +104,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err = user.Password.Set(input.Password)
 
 	if err != nil {
+		app.logError(r, err)
 		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
@@ -112,9 +114,11 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrorDuplicateEmail):
+			app.logError(r, err)
 			app.JSONError(w, errors.New("user with email already exist"), http.StatusBadRequest)
 		default:
-			app.JSONError(w, errors.New("rror inserting user to database"), http.StatusBadRequest)
+			app.logError(r, err)
+			app.JSONError(w, errors.New("error inserting user to database"), http.StatusBadRequest)
 		}
 		return
 	}
@@ -122,6 +126,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	token, err := app.models.Tokens.New(user.ID, duration, data.ScopeActivation)
 	if err != nil {
+		app.logError(r, err)
 		app.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
@@ -139,9 +144,11 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			switch {
 			case err.Error() == "template: pattern matches no files: `templates/user_registration.tmpl`":
 				app.JSONError(w, errors.New("no template found"), http.StatusBadRequest)
+				app.logError(r, err)
 				return
 			default:
 				app.JSONError(w, errors.New("an error occured when sending activation email"), http.StatusBadRequest)
+				app.logError(r, err)
 			}
 			return
 		}
@@ -154,6 +161,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		})
 	if err != nil {
 		app.JSONError(w, err, http.StatusBadRequest)
+		app.logError(r, err)
 		return
 	}
 }
@@ -173,8 +181,8 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	user, err := app.models.User.GetUserForToken(data.ScopeActivation, input.TokenPlaintext)
 	if err != nil {
 		switch {
-		case err.Error() == "sql: no rows in result set":
-			app.JSONError(w, errors.New("no user found with that token"), http.StatusBadRequest)
+		case errors.Is(err, data.ErrorRecordNotFound):
+			app.JSONError(w, errors.New("no user found match with to token"), http.StatusBadRequest)
 			return
 
 		default:

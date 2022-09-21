@@ -13,6 +13,9 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data any) e
 	jsonObject, err := json.MarshalIndent(data, "", "\t")
 
 	if err != nil {
+		app.logger.PrintError(err, map[string]string{
+			"error": "failed to write json",
+		})
 		fmt.Println(err)
 	}
 

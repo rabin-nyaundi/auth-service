@@ -44,6 +44,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 
 		headerParts := strings.Split(authorizationHeader, " ")
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+			fmt.Println("errrooro")
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
 		}
@@ -69,18 +70,6 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := app.ContextGetUser(r)
-
-		if user.IsAnonymus() {
-			app.authenticationRequiredResponse(w, r)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (app *application) requireAdminUser(next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.ContextGetUser(r)
@@ -94,6 +83,18 @@ func (app *application) requireAdminUser(next http.HandlerFunc) http.HandlerFunc
 		next.ServeHTTP(w, r)
 	})
 	return app.requireActivatedUser(fn)
+}
+
+func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := app.ContextGetUser(r)
+
+		if user.IsAnonymus() {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {

@@ -34,7 +34,7 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 	err = app.writeJSON(w, http.StatusOK,
 		JSONResponse{
 			Success: true,
-			Message: "users fetch success",
+			Message: "successful request",
 			Data:    users,
 		})
 
@@ -46,22 +46,17 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 
 func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request) {
 
-	var input struct {
-		TokenPlaintext string `json:"token"`
-	}
-	err := app.readJSON(w, r, &input)
+	contextUser := app.ContextGetUser(r)
 
-	if err != nil {
-		app.JSONError(w, err, http.StatusBadRequest)
-		return
-	}
+	// get user based on user id
+	user, err := app.models.User.GetUserByEmail(contextUser.Email)
 
-	user, err := app.models.User.GetUserForToken(data.ScopeAuthentication, input.TokenPlaintext)
+	// user, err := app.models.User.GetUserForToken(data.ScopeAuthentication, input.TokenPlaintext)
 
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrorRecordNotFound):
-			app.JSONError(w, errors.New("no user found with such token"), http.StatusBadRequest)
+			app.JSONError(w, errors.New("no user matching token"), http.StatusBadRequest)
 			return
 		default:
 			app.JSONError(w, err, http.StatusBadRequest)
@@ -71,7 +66,7 @@ func (app *application) fetchUserHandler(w http.ResponseWriter, r *http.Request)
 
 	app.writeJSON(w, http.StatusOK, JSONResponse{
 		Success: true,
-		Message: "users fetch success",
+		Message: "list users success",
 		Data:    user,
 	})
 }
@@ -115,7 +110,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		switch {
 		case errors.Is(err, data.ErrorDuplicateEmail):
 			app.logError(r, err)
-			app.JSONError(w, errors.New("user with email already exist"), http.StatusBadRequest)
+			app.JSONError(w, errors.New("email already exist"), http.StatusBadRequest)
 		default:
 			app.logError(r, err)
 			app.JSONError(w, errors.New("error inserting user to database"), http.StatusBadRequest)
@@ -211,7 +206,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	app.writeJSON(w, http.StatusAccepted,
 		JSONResponse{
 			Success: true,
-			Message: "user activation success",
+			Message: "activation success",
 			Data:    user,
 		})
 }

@@ -84,7 +84,7 @@ func (p *password) MatchPassword(plaintextPassword string) (bool, error) {
 func (m UserModel) InsertUser(user *User) error {
 	query := `
 	INSERT INTO auth_user (firstname, lastname, email, username, password_hash, active, role, version)
-	VALUES ($1, $2, $3, $4, $5, $6, 1, 1)
+	VALUES ($1, $2, $3, $4, $5, $6, 0, 1)
 	RETURNING id, CreatedAt, version
 	`
 

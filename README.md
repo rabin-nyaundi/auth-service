@@ -119,7 +119,7 @@ The REST API to the example app is described below.
 
     BODY='{"firstname":"test", "lastname":"user", "username":"testuser", "email":"test@test.com", "password": "pass@55word"  }'
     
-    curl -X POST -d "$BODY" http://localhost:4002/v1/users/
+    curl -X POST http://localhost:4002/v1/users/ -d "$BODY" 
 
 ### Response
 
@@ -173,7 +173,31 @@ The REST API to the example app is described below.
       }
     }
 
+## Get user profile
 
+### Request
+
+`GET /api/v1/me`
+```
+    curl -X GET http://localhost:4002/api/v1/me
+      -H "Authorization: Bearer ${token}
+      
+  ```
+
+  ### Response
+  ```
+    "data": {
+    "id": 2,
+    "firstname": "test",
+    "lastname": "user",
+    "username": "testuser",
+    "email": "test@test.com",
+    "active": true,
+    "role": 1,
+    "CreatedAt": "2022-09-12T20:43:57Z",
+    "UpdatedAt": "2022-09-12T20:44:21.050272223Z"
+  }
+  ```
 ## Credits
 
 This software uses the following open source packages:

@@ -21,10 +21,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// colors used in logging text in terminal
-// const colorCyan = "\033[36m"
-// const colorGreen = "\033[32m"
-// const colorRed = "\033[31m"
+type Color string
+
+const (
+	ColorBlack  Color = "\u001b[30m"
+	ColorRed          = "\u001b[31m"
+	ColorGreen        = "\u001b[32m"
+	ColorYellow       = "\u001b[33m"
+	ColorBlue         = "\u001b[34m"
+	ColorReset        = "\u001b[0m"
+)
 
 type envelope map[string]interface{}
 
@@ -167,7 +173,7 @@ func openDB(cfg config) (*sql.DB, error) {
 	db, err := sql.Open("postgres", cfg.db.dsn)
 
 	if err != nil {
-		fmt.Println("ERROR")
+		colorizeText(ColorRed, "Error opening postgres connection")
 		return nil, err
 	}
 	db.SetMaxOpenConns(cfg.db.maxOpenConns)
@@ -176,7 +182,7 @@ func openDB(cfg config) (*sql.DB, error) {
 	duration, err := time.ParseDuration(cfg.db.maxIdleTime)
 
 	if err != nil {
-		fmt.Println("ERROR")
+		colorizeText(ColorRed, "Error parsing duration at maxIddletime")
 		return nil, err
 	}
 
@@ -188,9 +194,13 @@ func openDB(cfg config) (*sql.DB, error) {
 	err = db.PingContext(ctx)
 
 	if err != nil {
-		fmt.Println("ERROR")
+		colorizeText(ColorRed, "Error connecting to db")
 		return nil, err
 	}
 
 	return db, nil
+}
+
+func colorizeText(color Color, message string) {
+	fmt.Println(string(color), message)
 }
